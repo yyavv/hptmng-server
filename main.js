@@ -7,6 +7,9 @@ import { createUsersTable } from "./models/User.js";
 // Import route handlers
 import authRouter from "./routes/auth.js";
 import patientsRouter from "./routes/patients.js";
+import branchesRouter from "./routes/branches.js";
+import doctorsRouter from "./routes/doctors.js";
+import specializationsRouter from "./routes/specializations.js";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -45,7 +48,11 @@ app.get("/", (req, res) => {
     message: "Hospital Management System API",
     version: "1.0.0",
     endpoints: {
+      auth: "/api/auth",
       patients: "/api/patients",
+      branches: "/api/branches",
+      doctors: "/api/doctors",
+      specializations: "/api/specializations",
       testDb: "/api/test-db",
     },
   });
@@ -75,8 +82,16 @@ app.get("/api/test-db", async (req, res) => {
 app.use("/api/auth", authRouter);
 
 // Patient management routes
-// All patient-related endpoints are handled by patientsRouter
 app.use("/api/patients", patientsRouter);
+
+// Branch management routes
+app.use("/api/branches", branchesRouter);
+
+// Doctor management routes
+app.use("/api/doctors", doctorsRouter);
+
+// Specialization routes
+app.use("/api/specializations", specializationsRouter);
 
 // 404 handler - catches all undefined routes
 app.use((req, res) => {
