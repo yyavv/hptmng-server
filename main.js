@@ -11,6 +11,10 @@ import branchesRouter from "./routes/branches.js";
 import doctorsRouter from "./routes/doctors.js";
 import specializationsRouter from "./routes/specializations.js";
 
+// Import middleware
+import { errorHandler, notFound } from "./middleware/errorHandler.js";
+import { sanitizeInput } from "./middleware/validation.js";
+
 // Load environment variables from .env file
 dotenv.config();
 
@@ -29,12 +33,30 @@ app.use(express.json());
 // extended: true allows rich objects and arrays
 app.use(express.urlencoded({ extended: true }));
 
+// Sanitize all user input
+app.use(sanitizeInput);
+
 // CORS (Cross-Origin Resource Sharing) configuration
 // Allows frontend applications to access this API from different domains
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*"); // Allow all origins
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"); // Allowed HTTP methods
-  res.header("Access-Control-Allow-Headers", "Content-Type"); // Allowed headers
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  ); // Allowed HTTP methods
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // Allowed headers - ADDED Authorization for JWT
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
@@ -93,13 +115,15 @@ app.use("/api/doctors", doctorsRouter);
 // Specialization routes
 app.use("/api/specializations", specializationsRouter);
 
+// ============================================
+// ERROR HANDLING
+// ============================================
+
 // 404 handler - catches all undefined routes
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Endpoint not found",
-  });
-});
+app.use(notFound);
+
+// Global error handler (must be last)
+app.use(errorHandler);
 
 // ============================================
 // SERVER INITIALIZATION

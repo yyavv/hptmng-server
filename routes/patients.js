@@ -1,21 +1,41 @@
 import express from "express";
 import * as patientController from "../controllers/patientController.js";
+import { authenticateToken, authorizeRoles } from "../middleware/auth.js";
+import { validateRequired } from "../middleware/validation.js";
 
 const router = express.Router();
 
-// GET /api/patients - Tüm hastaları listele
+// All routes require authentication
+router.use(authenticateToken);
+
+// GET /api/patients - Tüm hastaları listele (all roles can view)
 router.get("/", patientController.getPatients);
 
-// POST /api/patients - Yeni hasta ekle
-router.post("/", patientController.addPatient);
+// POST /api/patients - Yeni hasta ekle (staff and admin only)
+router.post(
+  "/",
+  authorizeRoles("admin", "receptionist", "nurse"),
+  validateRequired([
+    "first_name",
+    "last_name",
+    "date_of_birth",
+    "gender",
+    "phone",
+  ]),
+  patientController.addPatient
+);
 
-// GET /api/patients/:id - ID'ye göre hasta getir
+// GET /api/patients/:id - ID'ye göre hasta getir (all roles can view)
 router.get("/:id", patientController.getPatient);
 
-// PUT /api/patients/:id - Hasta güncelle
-router.put("/:id", patientController.updatePatient);
+// PUT /api/patients/:id - Hasta güncelle (staff and admin only)
+router.put(
+  "/:id",
+  authorizeRoles("admin", "receptionist", "nurse"),
+  patientController.updatePatient
+);
 
-// DELETE /api/patients/:id - Hasta sil
-router.delete("/:id", patientController.deletePatient);
+// DELETE /api/patients/:id - Hasta sil (admin only)
+router.delete("/:id", authorizeRoles("admin"), patientController.deletePatient);
 
 export default router;

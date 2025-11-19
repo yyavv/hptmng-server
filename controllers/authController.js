@@ -1,4 +1,5 @@
 import * as User from "../models/User.js";
+import { generateToken } from "../middleware/auth.js";
 
 // Login - Authenticate user
 export const login = async (req, res) => {
@@ -23,8 +24,10 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check password (simple comparison - in production use bcrypt!)
-    if (user.password !== password) {
+    // Check password with bcrypt
+    const isPasswordValid = await User.comparePassword(password, user.password);
+
+    if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
         message: "Invalid username or password",
@@ -34,10 +37,19 @@ export const login = async (req, res) => {
     // Update last login
     await User.updateLastLogin(user.id);
 
-    // Return user data (exclude password)
+    // Generate JWT token
+    const token = generateToken({
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      email: user.email,
+    });
+
+    // Return user data (exclude password) and token
     res.json({
       success: true,
       message: "Login successful",
+      token,
       user: {
         id: user.id,
         username: user.username,
@@ -68,6 +80,14 @@ export const register = async (req, res) => {
       });
     }
 
+    // Password strength validation
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
     // Check if user already exists
     const existingUser = await User.findUserByUsername(username);
     if (existingUser) {
@@ -77,18 +97,25 @@ export const register = async (req, res) => {
       });
     }
 
-    // Create new user
-    // NOTE: In production, hash the password with bcrypt!
+    // Create new user (password will be hashed in User.createUser)
     const newUser = await User.createUser({
       username,
-      password, // Should be hashed!
+      password,
       full_name,
       role,
+    });
+
+    // Generate JWT token for immediate login
+    const token = generateToken({
+      id: newUser.id,
+      username: newUser.username,
+      role: newUser.role,
     });
 
     res.status(201).json({
       success: true,
       message: "User created successfully",
+      token,
       user: newUser,
     });
   } catch (error) {

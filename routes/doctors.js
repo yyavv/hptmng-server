@@ -1,10 +1,14 @@
 // Doctor routes
 import express from "express";
 import pool from "../config/database.js";
+import { authenticateToken, authorizeRoles } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Get all doctors
+// All routes require authentication
+router.use(authenticateToken);
+
+// Get all doctors (all authenticated users can view)
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(
@@ -24,7 +28,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get doctor by ID
+// Get doctor by ID (all authenticated users can view)
 router.get("/:id", async (req, res) => {
   try {
     const result = await pool.query(
@@ -91,8 +95,8 @@ router.get("/branch/:branchId", async (req, res) => {
   }
 });
 
-// Create doctor (user must exist first)
-router.post("/", async (req, res) => {
+// Create doctor (admin only)
+router.post("/", authorizeRoles("admin"), async (req, res) => {
   try {
     const {
       id, // user_id
@@ -141,8 +145,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Assign doctor to branch
-router.post("/:id/branches", async (req, res) => {
+// Assign doctor to branch (admin only)
+router.post("/:id/branches", authorizeRoles("admin"), async (req, res) => {
   try {
     const {
       branch_id,
@@ -182,8 +186,8 @@ router.post("/:id/branches", async (req, res) => {
   }
 });
 
-// Update doctor
-router.put("/:id", async (req, res) => {
+// Update doctor (admin only)
+router.put("/:id", authorizeRoles("admin"), async (req, res) => {
   try {
     const fields = [];
     const values = [];

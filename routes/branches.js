@@ -1,10 +1,14 @@
 // Branch routes
 import express from "express";
 import pool from "../config/database.js";
+import { authenticateToken, authorizeRoles } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Get all branches
+// All routes require authentication
+router.use(authenticateToken);
+
+// Get all branches (all authenticated users can view)
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(
@@ -25,7 +29,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get branch by ID
+// Get branch by ID (all authenticated users can view)
 router.get("/:id", async (req, res) => {
   try {
     const result = await pool.query(
@@ -49,8 +53,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create new branch
-router.post("/", async (req, res) => {
+// Create new branch (admin only)
+router.post("/", authorizeRoles("admin"), async (req, res) => {
   try {
     const {
       branch_code,
@@ -94,8 +98,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Update branch
-router.put("/:id", async (req, res) => {
+// Update branch (admin only)
+router.put("/:id", authorizeRoles("admin"), async (req, res) => {
   try {
     const fields = [];
     const values = [];
@@ -134,8 +138,8 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// Delete branch (soft delete)
-router.delete("/:id", async (req, res) => {
+// Delete branch (soft delete, admin only)
+router.delete("/:id", authorizeRoles("admin"), async (req, res) => {
   try {
     const result = await pool.query(
       `UPDATE branches SET is_active = false, updated_at = CURRENT_TIMESTAMP

@@ -1,4 +1,5 @@
 import pool from "../config/database.js";
+import bcrypt from "bcryptjs";
 
 // Create users table for authentication
 export const createUsersTable = async () => {
@@ -31,18 +32,27 @@ export const findUserByUsername = async (username) => {
   return result.rows[0];
 };
 
-// Create new user
+// Create new user (with password hashing)
 export const createUser = async (userData) => {
   const { username, password, full_name, role } = userData;
+
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
 
   const result = await pool.query(
     `INSERT INTO users (username, password, full_name, role)
      VALUES ($1, $2, $3, $4)
      RETURNING id, username, full_name, role, created_at`,
-    [username, password, full_name, role || "user"]
+    [username, hashedPassword, full_name, role || "user"]
   );
 
   return result.rows[0];
+};
+
+// Compare password (for login)
+export const comparePassword = async (plainPassword, hashedPassword) => {
+  return await bcrypt.compare(plainPassword, hashedPassword);
 };
 
 // Update last login time
