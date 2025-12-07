@@ -72,11 +72,19 @@ export const getPatient = async (req, res) => {
 // Hasta güncelle
 export const updatePatient = async (req, res) => {
   try {
+    // Validate request body
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Güncellenecek veri bulunamadı",
+      });
+    }
+
     const patient = await Patient.updatePatient(req.params.id, req.body);
     if (!patient) {
       return res.status(404).json({
         success: false,
-        message: "Hasta bulunamadı",
+        message: "Hasta bulunamadı veya zaten silinmiş",
       });
     }
     res.json({
@@ -97,7 +105,13 @@ export const updatePatient = async (req, res) => {
 // Hasta sil
 export const deletePatient = async (req, res) => {
   try {
-    await Patient.deletePatient(req.params.id);
+    const patient = await Patient.deletePatient(req.params.id);
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: "Hasta bulunamadı veya zaten silinmiş",
+      });
+    }
     res.json({
       success: true,
       message: "Hasta başarıyla silindi",

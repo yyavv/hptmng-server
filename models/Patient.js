@@ -133,6 +133,11 @@ export const searchPatients = async (searchTerm) => {
 
 // Update patient
 export const updatePatient = async (id, patientData) => {
+  // Validate patientData
+  if (!patientData || typeof patientData !== "object") {
+    throw new Error("Invalid patient data provided");
+  }
+
   const fields = [];
   const values = [];
   let paramCount = 1;
@@ -155,7 +160,7 @@ export const updatePatient = async (id, patientData) => {
   const result = await pool.query(
     `UPDATE patients SET ${fields.join(
       ", "
-    )} WHERE id = $${paramCount} RETURNING *`,
+    )} WHERE id = $${paramCount} AND is_active = true RETURNING *`,
     values
   );
 
@@ -166,7 +171,7 @@ export const updatePatient = async (id, patientData) => {
 export const deletePatient = async (id) => {
   const result = await pool.query(
     `UPDATE patients SET is_active = false, updated_at = CURRENT_TIMESTAMP
-     WHERE id = $1 RETURNING *`,
+     WHERE id = $1 AND is_active = true RETURNING *`,
     [id]
   );
   return result.rows[0];
