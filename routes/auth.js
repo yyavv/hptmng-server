@@ -7,6 +7,9 @@ const router = express.Router();
 // POST /api/auth/login - User login
 router.post("/login", authController.login);
 
+// POST /api/auth/logout - User logout (requires auth)
+router.post("/logout", authenticateToken, authController.logout);
+
 // POST /api/auth/register - User registration (admin only)
 router.post(
   "/register",

@@ -156,6 +156,27 @@ export const getUsers = async (req, res) => {
   }
 };
 
+// Logout - Clear user session
+export const logout = async (req, res) => {
+  try {
+    // In stateless JWT, logout is handled client-side by deleting the token
+    // Server can log the logout event if needed
+    console.log(`User ${req.user.username} (ID: ${req.user.id}) logged out`);
+
+    res.json({
+      success: true,
+      message: "Logout successful. Please delete the token from client.",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Logout failed",
+      error: error.message,
+    });
+  }
+};
+
 // Get user by ID
 export const getUserById = async (req, res) => {
   try {

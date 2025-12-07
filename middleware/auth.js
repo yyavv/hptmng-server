@@ -2,9 +2,10 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-this-in-production";
-const JWT_EXPIRE = process.env.JWT_EXPIRE || "7d";
+const JWT_EXPIRE = process.env.JWT_EXPIRE || "15m"; // Short-lived access token
+const REFRESH_TOKEN_EXPIRE = process.env.REFRESH_TOKEN_EXPIRE || "7d";
 
-// Generate JWT token
+// Generate JWT access token (short-lived)
 export const generateToken = (user) => {
   return jwt.sign(
     {
@@ -15,6 +16,18 @@ export const generateToken = (user) => {
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRE }
+  );
+};
+
+// Generate refresh token (long-lived)
+export const generateRefreshToken = (user) => {
+  return jwt.sign(
+    {
+      id: user.id,
+      type: 'refresh'
+    },
+    JWT_SECRET,
+    { expiresIn: REFRESH_TOKEN_EXPIRE }
   );
 };
 
