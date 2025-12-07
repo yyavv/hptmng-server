@@ -117,9 +117,9 @@ export const updateAppointmentStatus = async (
 ) => {
   const result = await pool.query(
     `UPDATE appointments 
-     SET status = $1,
-         cancelled_by = CASE WHEN $1 = 'cancelled' THEN $2 ELSE cancelled_by END,
-         cancellation_reason = CASE WHEN $1 = 'cancelled' THEN $3 ELSE cancellation_reason END,
+     SET status = $1::text,
+         cancelled_by = CASE WHEN $1::text = 'cancelled' THEN $2 ELSE cancelled_by END,
+         cancellation_reason = CASE WHEN $1::text = 'cancelled' THEN $3 ELSE cancellation_reason END,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = $4
      RETURNING *`,
