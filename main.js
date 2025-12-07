@@ -4,6 +4,7 @@ import pool from "./config/database.js";
 
 // Import route handlers
 import authRouter from "./routes/auth.js";
+import usersRouter from "./routes/users.js";
 import patientsRouter from "./routes/patients.js";
 import branchesRouter from "./routes/branches.js";
 import doctorsRouter from "./routes/doctors.js";
@@ -69,6 +70,7 @@ app.get("/", (req, res) => {
     version: "1.0.0",
     endpoints: {
       auth: "/api/auth",
+      users: "/api/users",
       patients: "/api/patients",
       branches: "/api/branches",
       doctors: "/api/doctors",
@@ -100,6 +102,9 @@ app.get("/api/test-db", async (req, res) => {
 
 // Authentication routes (login, register)
 app.use("/api/auth", authRouter);
+
+// User management routes
+app.use("/api/users", usersRouter);
 
 // Patient management routes
 app.use("/api/patients", patientsRouter);

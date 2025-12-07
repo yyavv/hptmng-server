@@ -81,6 +81,11 @@ export const getUserById = async (userId) => {
 
 // Update user
 export const updateUser = async (userId, userData) => {
+  // Validate userData
+  if (!userData || typeof userData !== "object") {
+    throw new Error("Invalid user data provided");
+  }
+
   const fields = [];
   const values = [];
   let paramCount = 1;

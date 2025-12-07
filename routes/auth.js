@@ -15,36 +15,12 @@ router.post(
   authController.register
 );
 
-// GET /api/auth/users - Get all users (admin only)
+// GET /api/auth/users - Get all users (DEPRECATED - use /api/users)
 router.get(
   "/users",
   authenticateToken,
   authorizeRoles("admin"),
   authController.getUsers
-);
-
-// GET /api/auth/users/:id - Get user by ID (admin only)
-router.get(
-  "/users/:id",
-  authenticateToken,
-  authorizeRoles("admin"),
-  authController.getUserById
-);
-
-// PUT /api/auth/users/:id - Update user (admin only)
-router.put(
-  "/users/:id",
-  authenticateToken,
-  authorizeRoles("admin"),
-  authController.updateUser
-);
-
-// DELETE /api/auth/users/:id - Soft delete user (admin only)
-router.delete(
-  "/users/:id",
-  authenticateToken,
-  authorizeRoles("admin"),
-  authController.deleteUser
 );
 
 export default router;
