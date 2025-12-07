@@ -42,3 +42,15 @@ export const updateSpecialization = async (id, data) => {
   );
   return result.rows[0];
 };
+
+// Soft delete specialization
+export const deleteSpecialization = async (id) => {
+  const result = await pool.query(
+    `UPDATE specializations 
+     SET is_active = false, updated_at = CURRENT_TIMESTAMP
+     WHERE id = $1 AND is_active = true
+     RETURNING *`,
+    [id]
+  );
+  return result.rows[0];
+};

@@ -29,4 +29,11 @@ router.put(
   specializationController.updateSpecialization
 );
 
+// DELETE /api/specializations/:id - Uzmanlık sil (admin only)
+router.delete(
+  "/:id",
+  authorizeRoles("admin"),
+  specializationController.deleteSpecialization
+);
+
 export default router;

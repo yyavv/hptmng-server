@@ -9,6 +9,7 @@ import patientsRouter from "./routes/patients.js";
 import branchesRouter from "./routes/branches.js";
 import doctorsRouter from "./routes/doctors.js";
 import specializationsRouter from "./routes/specializations.js";
+import appointmentsRouter from "./routes/appointments.js";
 
 // Import middleware
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
@@ -75,6 +76,7 @@ app.get("/", (req, res) => {
       branches: "/api/branches",
       doctors: "/api/doctors",
       specializations: "/api/specializations",
+      appointments: "/api/appointments",
       testDb: "/api/test-db",
     },
   });
@@ -117,6 +119,9 @@ app.use("/api/doctors", doctorsRouter);
 
 // Specialization routes
 app.use("/api/specializations", specializationsRouter);
+
+// Appointment routes
+app.use("/api/appointments", appointmentsRouter);
 
 // ============================================
 // ERROR HANDLING
