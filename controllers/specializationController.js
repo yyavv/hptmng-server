@@ -90,3 +90,30 @@ export const updateSpecialization = async (req, res) => {
     });
   }
 };
+
+// Uzmanlık sil (soft delete)
+export const deleteSpecialization = async (req, res) => {
+  try {
+    const specialization = await Specialization.deleteSpecialization(
+      req.params.id
+    );
+    if (!specialization) {
+      return res.status(404).json({
+        success: false,
+        message: "Uzmanlık bulunamadı veya zaten silinmiş",
+      });
+    }
+    res.json({
+      success: true,
+      message: "Uzmanlık başarıyla silindi",
+      data: specialization,
+    });
+  } catch (error) {
+    console.error("Uzmanlık silme hatası:", error);
+    res.status(500).json({
+      success: false,
+      message: "Uzmanlık silinirken hata oluştu",
+      error: error.message,
+    });
+  }
+};
