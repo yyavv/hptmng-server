@@ -21,6 +21,14 @@ export const getPatients = async (req, res) => {
 // Yeni hasta ekle
 export const addPatient = async (req, res) => {
   try {
+    // Generate patient number if not provided
+    if (!req.body.patient_number) {
+      req.body.patient_number = await Patient.generatePatientNumber();
+    }
+
+    // Set created_by from authenticated user
+    req.body.created_by = req.user.id;
+
     const patient = await Patient.createPatient(req.body);
     res.status(201).json({
       success: true,

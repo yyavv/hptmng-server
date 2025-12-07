@@ -1,8 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import pool from "./config/database.js";
-import { createPatientsTable } from "./models/Patient.js";
-import { createUsersTable } from "./models/User.js";
 
 // Import route handlers
 import authRouter from "./routes/auth.js";
@@ -129,21 +127,20 @@ app.use(errorHandler);
 // SERVER INITIALIZATION
 // ============================================
 
-// Initialize database tables and start the server
+// Start the server
 const startServer = async () => {
   try {
-    // Create database tables if they don't exist
-    await createUsersTable();
-    await createPatientsTable();
-    console.log("📊 Database tables ready");
+    // Test database connection
+    await pool.query("SELECT NOW()");
+    console.log("Database connection verified");
 
     // Start Express server
     app.listen(port, () => {
-      console.log(`🚀 Server running on port ${port}`);
-      console.log(`📍 http://localhost:${port}`);
+      console.log(`Server running on port ${port}`);
+      console.log(`http://localhost:${port}`);
     });
   } catch (error) {
-    console.error("❌ Server startup error:", error);
+    console.error("Server startup error:", error);
     process.exit(1); // Exit with error code
   }
 };

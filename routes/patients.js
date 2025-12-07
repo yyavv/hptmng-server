@@ -15,13 +15,7 @@ router.get("/", patientController.getPatients);
 router.post(
   "/",
   authorizeRoles("admin", "receptionist", "nurse"),
-  validateRequired([
-    "first_name",
-    "last_name",
-    "date_of_birth",
-    "gender",
-    "phone",
-  ]),
+  validateRequired(["first_name", "last_name", "phone"]),
   patientController.addPatient
 );
 

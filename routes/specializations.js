@@ -1,41 +1,32 @@
-// Specialization routes
 import express from "express";
-import pool from "../config/database.js";
+import * as specializationController from "../controllers/specializationController.js";
+import { authenticateToken, authorizeRoles } from "../middleware/auth.js";
+import { validateRequired } from "../middleware/validation.js";
 
 const router = express.Router();
 
-// Get all specializations
-router.get("/", async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT * FROM specializations 
-       WHERE is_active = true 
-       ORDER BY name_tr`
-    );
-    res.json(result.rows);
-  } catch (error) {
-    console.error("Error fetching specializations:", error);
-    res.status(500).json({ error: "Failed to fetch specializations" });
-  }
-});
+// All routes require authentication
+router.use(authenticateToken);
 
-// Get specialization by ID
-router.get("/:id", async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT * FROM specializations WHERE id = $1`,
-      [req.params.id]
-    );
+// GET /api/specializations - Tüm uzmanlıkları listele
+router.get("/", specializationController.getSpecializations);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Specialization not found" });
-    }
+// GET /api/specializations/:id - ID'ye göre uzmanlık getir
+router.get("/:id", specializationController.getSpecialization);
 
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error("Error fetching specialization:", error);
-    res.status(500).json({ error: "Failed to fetch specialization" });
-  }
-});
+// POST /api/specializations - Yeni uzmanlık ekle (admin only)
+router.post(
+  "/",
+  authorizeRoles("admin"),
+  validateRequired(["name"]),
+  specializationController.addSpecialization
+);
+
+// PUT /api/specializations/:id - Uzmanlık güncelle (admin only)
+router.put(
+  "/:id",
+  authorizeRoles("admin"),
+  specializationController.updateSpecialization
+);
 
 export default router;

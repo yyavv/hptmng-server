@@ -4,8 +4,12 @@
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "start": "node main.js",
-    "dev": "nodemon main.js"
+    "start": "nodemon main.js",
+    "dev": "node main.js",
+    "db:reset": "node scripts/reset-db.js",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "db:fresh": "npm run db:reset && npm run db:migrate && npm run db:seed"
   },
   "author": "",
   "license": "ISC",
@@ -16,5 +20,8 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }

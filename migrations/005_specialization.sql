@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS specializations
+(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    
+    is_active BOOLEAN DEFAULT true,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -50,7 +50,7 @@ export const createPatientsTable = async () => {
 export const getAllPatients = async () => {
   const result = await pool.query(
     `SELECT p.*,
-            u.full_name as created_by_name
+            CONCAT(u.first_name, ' ', u.last_name) as created_by_name
      FROM patients p
      LEFT JOIN users u ON p.created_by = u.id
      WHERE p.is_active = true
@@ -63,7 +63,7 @@ export const getAllPatients = async () => {
 export const getPatientById = async (id) => {
   const result = await pool.query(
     `SELECT p.*,
-            u.full_name as created_by_name
+            CONCAT(u.first_name, ' ', u.last_name) as created_by_name
      FROM patients p
      LEFT JOIN users u ON p.created_by = u.id
      WHERE p.id = $1`,
@@ -81,20 +81,9 @@ export const createPatient = async (patientData) => {
     tc_no,
     passport_no,
     birth_date,
-    gender,
     blood_type,
     phone,
     email,
-    address,
-    city,
-    country = "Turkey",
-    emergency_contact_name,
-    emergency_contact_phone,
-    emergency_contact_relation,
-    allergies,
-    chronic_diseases,
-    insurance_company,
-    insurance_number,
     notes,
     created_by,
   } = patientData;
@@ -102,11 +91,8 @@ export const createPatient = async (patientData) => {
   const result = await pool.query(
     `INSERT INTO patients (
       patient_number, first_name, last_name, tc_no, passport_no,
-      birth_date, gender, blood_type, phone, email, address, city, country,
-      emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
-      allergies, chronic_diseases, insurance_company, insurance_number,
-      notes, created_by
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      birth_date, blood_type, phone, email, notes, created_by
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING *`,
     [
       patient_number,
@@ -115,20 +101,9 @@ export const createPatient = async (patientData) => {
       tc_no,
       passport_no,
       birth_date,
-      gender,
       blood_type,
       phone,
       email,
-      address,
-      city,
-      country,
-      emergency_contact_name,
-      emergency_contact_phone,
-      emergency_contact_relation,
-      allergies,
-      chronic_diseases,
-      insurance_company,
-      insurance_number,
       notes,
       created_by,
     ]

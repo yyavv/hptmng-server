@@ -1,28 +1,8 @@
 import pool from "../config/database.js";
 import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
 
-// Create users table for authentication
-export const createUsersTable = async () => {
-  const query = `
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(50) UNIQUE NOT NULL,
-      password VARCHAR(255) NOT NULL,
-      full_name VARCHAR(100) NOT NULL,
-      role VARCHAR(20) DEFAULT 'user',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      last_login TIMESTAMP
-    );
-  `;
-
-  try {
-    await pool.query(query);
-    console.log("✅ Users table ready");
-  } catch (error) {
-    console.error("❌ Users table creation error:", error);
-    throw error;
-  }
-};
+dotenv.config();
 
 // Find user by username
 export const findUserByUsername = async (username) => {
@@ -34,17 +14,34 @@ export const findUserByUsername = async (username) => {
 
 // Create new user (with password hashing)
 export const createUser = async (userData) => {
-  const { username, password, full_name, role } = userData;
+  const {
+    username,
+    password,
+    first_name,
+    last_name,
+    email,
+    phone_number,
+    role,
+  } = userData;
 
-  // Hash password
+  const pepper = process.env.PEPPER || "";
+  const passwordWithPepper = password + pepper;
   const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await bcrypt.hash(passwordWithPepper, salt);
 
   const result = await pool.query(
-    `INSERT INTO users (username, password, full_name, role)
-     VALUES ($1, $2, $3, $4)
-     RETURNING id, username, full_name, role, created_at`,
-    [username, hashedPassword, full_name, role || "user"]
+    `INSERT INTO users (username, password_hash, first_name, last_name, email, phone_number, role)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id, username, first_name, last_name, email, phone_number, role, created_at`,
+    [
+      username,
+      hashedPassword,
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      role || "receptionist",
+    ]
   );
 
   return result.rows[0];
@@ -52,7 +49,9 @@ export const createUser = async (userData) => {
 
 // Compare password (for login)
 export const comparePassword = async (plainPassword, hashedPassword) => {
-  return await bcrypt.compare(plainPassword, hashedPassword);
+  const pepper = process.env.PEPPER || "";
+  const passwordWithPepper = plainPassword + pepper;
+  return await bcrypt.compare(passwordWithPepper, hashedPassword);
 };
 
 // Update last login time
@@ -66,7 +65,66 @@ export const updateLastLogin = async (userId) => {
 // Get all users (exclude passwords)
 export const getAllUsers = async () => {
   const result = await pool.query(
-    "SELECT id, username, full_name, role, created_at, last_login FROM users ORDER BY created_at DESC"
+    "SELECT id, username, first_name, last_name, email, phone_number, role, is_active, created_at, last_login FROM users ORDER BY created_at DESC"
   );
   return result.rows;
+};
+
+// Get user by ID (exclude password)
+export const getUserById = async (userId) => {
+  const result = await pool.query(
+    "SELECT id, username, first_name, last_name, email, phone_number, role, is_active, created_at, last_login FROM users WHERE id = $1",
+    [userId]
+  );
+  return result.rows[0];
+};
+
+// Update user
+export const updateUser = async (userId, userData) => {
+  const fields = [];
+  const values = [];
+  let paramCount = 1;
+
+  // Only allow specific fields to be updated
+  const allowedFields = [
+    "first_name",
+    "last_name",
+    "email",
+    "phone_number",
+    "role",
+  ];
+
+  Object.keys(userData).forEach((key) => {
+    if (allowedFields.includes(key) && userData[key] !== undefined) {
+      fields.push(`${key} = $${paramCount}`);
+      values.push(userData[key]);
+      paramCount++;
+    }
+  });
+
+  if (fields.length === 0) {
+    throw new Error("No valid fields to update");
+  }
+
+  fields.push(`updated_at = CURRENT_TIMESTAMP`);
+  values.push(userId);
+
+  const result = await pool.query(
+    `UPDATE users SET ${fields.join(", ")} WHERE id = $${paramCount} 
+     RETURNING id, username, first_name, last_name, email, phone_number, role, is_active, created_at`,
+    values
+  );
+
+  return result.rows[0];
+};
+
+// Soft delete user (set is_active to false)
+export const softDeleteUser = async (userId) => {
+  const result = await pool.query(
+    `UPDATE users SET is_active = false, updated_at = CURRENT_TIMESTAMP 
+     WHERE id = $1 
+     RETURNING id, username, first_name, last_name, email, phone_number, role, is_active`,
+    [userId]
+  );
+  return result.rows[0];
 };

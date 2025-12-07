@@ -25,7 +25,10 @@ export const login = async (req, res) => {
     }
 
     // Check password with bcrypt
-    const isPasswordValid = await User.comparePassword(password, user.password);
+    const isPasswordValid = await User.comparePassword(
+      password,
+      user.password_hash
+    );
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -53,7 +56,9 @@ export const login = async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        full_name: user.full_name,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
         role: user.role,
       },
     });
@@ -70,13 +75,21 @@ export const login = async (req, res) => {
 // Register - Create new user
 export const register = async (req, res) => {
   try {
-    const { username, password, full_name, role } = req.body;
+    const {
+      username,
+      password,
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      role,
+    } = req.body;
 
     // Validate input
-    if (!username || !password || !full_name) {
+    if (!username || !password || !first_name || !last_name) {
       return res.status(400).json({
         success: false,
-        message: "Username, password, and full name are required",
+        message: "Username, password, first name, and last name are required",
       });
     }
 
@@ -101,21 +114,17 @@ export const register = async (req, res) => {
     const newUser = await User.createUser({
       username,
       password,
-      full_name,
+      first_name,
+      last_name,
+      email,
+      phone_number,
       role,
     });
 
-    // Generate JWT token for immediate login
-    const token = generateToken({
-      id: newUser.id,
-      username: newUser.username,
-      role: newUser.role,
-    });
-
+    // Don't generate token - admin already has one
     res.status(201).json({
       success: true,
       message: "User created successfully",
-      token,
       user: newUser,
     });
   } catch (error) {
@@ -142,6 +151,86 @@ export const getUsers = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to retrieve users",
+      error: error.message,
+    });
+  }
+};
+
+// Get user by ID
+export const getUserById = async (req, res) => {
+  try {
+    const user = await User.getUserById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      user: user,
+    });
+  } catch (error) {
+    console.error("Get user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve user",
+      error: error.message,
+    });
+  }
+};
+
+// Update user
+export const updateUser = async (req, res) => {
+  try {
+    const user = await User.updateUser(req.params.id, req.body);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "User updated successfully",
+      user: user,
+    });
+  } catch (error) {
+    console.error("Update user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update user",
+      error: error.message,
+    });
+  }
+};
+
+// Soft delete user (set is_active to false)
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await User.softDeleteUser(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "User deactivated successfully",
+      user: user,
+    });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to deactivate user",
       error: error.message,
     });
   }

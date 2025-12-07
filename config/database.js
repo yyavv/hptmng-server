@@ -31,13 +31,13 @@ const pool = new Pool({
 
 // Event listener: Fires when a new client successfully connects to the database
 pool.on("connect", () => {
-  console.log("✅ PostgreSQL database connected successfully");
+  console.log("PostgreSQL database connected successfully");
 });
 
 // Event listener: Fires when an unexpected database error occurs
 // This catches errors like connection loss, network issues, etc.
 pool.on("error", (err) => {
-  console.error("❌ Unexpected database error:", err);
+  console.error("Unexpected database error:", err);
   process.exit(-1); // Exit the application with error code
 });
 
